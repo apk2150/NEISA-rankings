@@ -4,6 +4,27 @@ import google_sheets
 import techscore_reader
 import csv
 
+#socres for 15-18 teams
+SA_18=[108.00,105.00, 102.00, 99.00, 96.00, 93.00, 90.00, 87.00, 84.00, 81.00, 78.00, 75.00, 72.00, 69.00, 66.00, 63.00, 60.00, 57.00]
+A_18=[90.00,85.00,80.00,75.00,70.00,65.00,60.00,55.00,50.00,45.00,40.00,35.00,30.00,25.00,20.00,15.00,10.00,5.00]
+AM_18=[54.00,51.00,48.00,45.00,42.00,39.00,36.00,33.00,30.00,27.00,24.00,21.00,18.00,15.00,12.00,9.00,6.00,3.00]
+B_18=[36.00,34.00,32.00,30.00,28.00,26.00,24.00,22.00,20.00,18.00,16.00,14.00,12.00,10.00,8.00,6.00,4.00,2.00]
+C_18 =[18.00,17.00,16.00,15.00,14.00,13.00,12.00,11.00,10.00,9.00,8.00,7.00,6.00,5.00,4.00,3.00,2.00,1.00]
+
+POINTS_15_18={"SA":SA_18, "A": A_18, "AM":AM_18, "B": B_18, "C":C_18}
+#scores for 11-14 teams
+A_14=[84.00,78.00,72.00,66.00,60.00,54.00,48.00,42.00,36.00,30.00,24.00,18.00,12.00,6.00]
+AM_14=[49.00,45.50,42.00,38.50,35.00,31.50,28.00,24.50,21.00,17.50,14.00,10.50,7.00,3.50]
+B_14=[35.00,32.50,30.00,27.50,25.00,22.50,20.00,17.50,15.00,12.50,10.00,7.50,5.00,2.50]
+C_14=[17.50,16.25,15.00,13.75,12.50,11.25,10.00,8.75,7.50,6.25,5.00,3.75,2.50,1.25]
+POINTS_11_14 = {"A": A_14, "AM": AM_14, "B": B_14, "C": C_14}
+#scores for 7-10 teams
+B_10 = [30.00,27.00,24.00,21.00,18.00,15.00,12.00,9.00,6.00,3.00]
+C_10 = [15.00,13.50,12.00,10.50,9.00,7.50,6.00,4.50,3.00,1.50]
+POINTS_7_10 = {"B": B_10, "C": C_10}
+#note: do not get points for regattas with less than 7 teams
+
+
 class School:
     def __init__(self, name):
         self.name = name
@@ -24,33 +45,18 @@ class School:
         return sum([pair[0] for pair in self.counted_points]) + self.s_regatta_score[0]
 
 def calculate_rank(type, total_teams, score):
-    if score == 0:
+    #determine num of teams
+    if total_teams >=15:
+        points = POINTS_15_18[type]
+    elif total_teams >= 11:
+        points = POINTS_11_14[type]
+    elif total_teams >= 7:
+        points = POINTS_7_10[type]
+    else:
         return 0
-    first = None
-    last = 0
-    if type == "A":
-        first = 8.5
-    elif type == "B":
-        first = 5.01
-    elif type == "C":
-        first = 4.16
-    elif type == "WSC":
-        first = 10.0
-    elif type == "WA":
-        first = 8.5
-    elif type == "WB" or type == "A-":
-        first = 7.0
-    elif type == "SC":
-        first = 10.0
-        last = 5.0
-    elif type == "SC_alt":
-        first = 7
-
-    droprate = .005 * first
-    amounttodrop = (18-total_teams)*droprate
-    first = first - amounttodrop
-    rankvalue = -1.0 * (first-last) / (total_teams-1) * (score-1) + first
-    if (abs(rankvalue) < .003): rankvalue = 0.0
+    #determine rank
+    rankvalue= points[score]
+    print(rankvalue)
     return rankvalue
 
 def enter_scores(school_objects, data, type, total_teams, regatta_name):
