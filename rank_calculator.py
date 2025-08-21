@@ -67,27 +67,27 @@ def enter_scores(school_objects, data, type, total_teams, regatta_name):
         if team in school_objects:
             school_objects[team].add_points(score, regatta_name)
 
-def enter_s_scores(school_objects, data, type, total_teams, regatta_name):
-    data = list(data)
-    if type == "SC_A":
-        type = "SC"
-    elif type == "SC_B":
-        type = "B"
-        if (total_teams < 18):
-            total_teams = 18
-    elif type == "WSC_A": #TODO: why was it WSC_A in the first place? why not just WSC?
-        type = "WSC"
-    else:
-        print("enter_s_scores doesnt understand the regatta type")
+# def enter_s_scores(school_objects, data, type, total_teams, regatta_name):
+#     data = list(data)
+#     if type == "SC_A":
+#         type = "SC"
+#     elif type == "SC_B":
+#         type = "B"
+#         if (total_teams < 18):
+#             total_teams = 18
+#     elif type == "WSC_A": #TODO: why was it WSC_A in the first place? why not just WSC?
+#         type = "WSC"
+#     else:
+#         print("enter_s_scores doesnt understand the regatta type")
 
-    for scoreind in range(len(data)):
-        team = data[scoreind]
-        score = calculate_rank(type, total_teams, scoreind+1)
-        if team in school_objects:
-            if school_objects[team].s_regatta_score[0] == 0:
-                school_objects[team].s_regatta_score = (round(score, 2), regatta_name)
-            else:
-                print("hmm you tried to add two s scores to the same school object")
+#     for scoreind in range(len(data)):
+#         team = data[scoreind]
+#         score = calculate_rank(type, total_teams, scoreind+1)
+#         if team in school_objects:
+#             if school_objects[team].s_regatta_score[0] == 0:
+#                 school_objects[team].s_regatta_score = (round(score, 2), regatta_name)
+#             else:
+#                 print("hmm you tried to add two s scores to the same school object")
 
 def get_rank(school_objects):
     tuplist = []
@@ -114,21 +114,23 @@ def calculate_ranks(regatta_link, schools_link):
         if not pd.isnull(lateDrops):
             total_teams += lateDrops
         regatta_name = (regatta.Link.split("/"))[-2]
-        if regatta_type in ("SC_A", "WSC_A", "SC_B"):
-            enter_s_scores(school_objects, regatta_finishes, regatta_type, total_teams, regatta_name)
-            continue
+        print("\n\nregatta name", regatta_name)
+        print("regatta type", regatta_type)
+        # if regatta_type in ("SC_A", "WSC_A", "SC_B"):
+        #     enter_s_scores(school_objects, regatta_finishes, regatta_type, total_teams, regatta_name)
+        #     continue
 
-        if (regatta_type == "A") and (total_teams < 18):
-            total_teams = 18
+        # if (regatta_type == "A") and (total_teams < 18):
+        #     total_teams = 18
 
-        if (regatta_type == "B") and (total_teams < 16):
-            total_teams = 16
+        # if (regatta_type == "B") and (total_teams < 16):
+        #     total_teams = 16
 
-        if regatta_type == "special_A": #sidesteps the total team minimum
-            regatta_type = "A"
+        # if regatta_type == "special_A": #sidesteps the total team minimum
+        #     regatta_type = "A"
 
         #TODO: where is the WSC one the line below coming from?
-        regattaTypes = ["A", "special_A", "A-", "WSC", "B", "C", "WA", "WB", "SC", "SC_alt"]
+        regattaTypes = ["A", "SA", "AM", "B", "C"]
         if regatta_type not in regattaTypes:
             print("Regatta type " + regatta_type + " is incorrect for " + regatta.Link)
             print("Possible regatta type options for this regatta are: " + str(regattaTypes))
@@ -146,3 +148,31 @@ def calculate_score_table(total_teams_maximum, total_teams_minimum, regatta_type
         for i in range(1, total_teams+1):
             print(calculate_rank(regatta_type, total_teams, i))
         total_teams = total_teams - 1
+def export_team_regatta_points(school_objects, regatta_link, output_csv_path):
+    import pandas as pd
+    import csv
+
+    # Read regatta names in order from regatta_link
+    df = google_sheets.read_sheet(regatta_link)
+    regatta_names = []
+    for _, regatta in df.iterrows():
+        regatta_name = (regatta.Link.split("/"))[-2]
+        regatta_names.append(regatta_name)
+
+    # Build rows
+    rows = []
+    for school in school_objects.values():
+        row = [school.name]
+        regatta_points = {regatta: "" for regatta in regatta_names}
+        for pts, regatta in school.points:
+            regatta_points[regatta] = pts
+        if school.s_regatta_score[0] != 0 and school.s_regatta_score[1]:
+            regatta_points[school.s_regatta_score[1]] = school.s_regatta_score[0]
+        row += [regatta_points[regatta] for regatta in regatta_names]
+        rows.append(row)
+
+    # Write to CSV
+    with open(output_csv_path, "w", newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow(["Team"] + regatta_names)
+        writer.writerows(rows)
