@@ -2,8 +2,8 @@ import rank_calculator
 import csv
 
 schoolslink = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2O1cDbUtwrHTIfpCXKQ8Ue7JsJE6PJo-DoSMPt3HdKxV-6_gSP27hSRhN20pT2Vbe48j0Ec1yqLL6/pub?output=csv"
-coedRegattaLink = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQm-fcet5nzTCvBvHAL_-kz_qrly5SwPJ2nsZYWX_sMgn63Ji8jHffjRDmX1Ha0Qv-wy_pLz5O7aEQP/pub?output=csv"
-womensRegattaLink = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQm-fcet5nzTCvBvHAL_-kz_qrly5SwPJ2nsZYWX_sMgn63Ji8jHffjRDmX1Ha0Qv-wy_pLz5O7aEQP/pub?output=csv"
+coedRegattaLink = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQm-fcet5nzTCvBvHAL_-kz_qrly5SwPJ2nsZYWX_sMgn63Ji8jHffjRDmX1Ha0Qv-wy_pLz5O7aEQP/pub?gid=0&single=true&output=csv"
+womensRegattaLink = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQToInFvTLyeqNNjBK2OkDq4jdf_uyyynPsg9y8ba94YWTTt5pFa_TKyEmqus_Jr6dIvqzopy9ppXIU/pub?gid=0&single=true&output=csv"
 
 coed_rankings_output_file = "rankings.csv"
 coed_component_scores_file = "component_scores.csv"
@@ -40,9 +40,15 @@ womens_component_scores_file = "womens_component_scores.csv"
 
 
 # Example usage after calculate_ranks:
-ranks, school_objects = rank_calculator.calculate_ranks(coedRegattaLink, schoolslink)
-rank_calculator.export_team_regatta_points(school_objects, coedRegattaLink, "team_regatta_points.csv")
-print("results written to team_regatta_points.csv")
+coed_ranks, school_objects = rank_calculator.calculate_ranks(coedRegattaLink, schoolslink)
+rank_calculator.export_team_regatta_points_and_placements(
+    school_objects, coedRegattaLink, "results/coed_team_regatta_points.csv", "results/validate/coed_team_regatta_placements.csv"
+)
+
+women_ranks, school_objects = rank_calculator.calculate_ranks(womensRegattaLink, schoolslink)
+rank_calculator.export_team_regatta_points_and_placements(
+    school_objects, womensRegattaLink, "results/women_team_regatta_points.csv", "results/validate/women_team_regatta_placements.csv"
+)
 ######################################################
 
 

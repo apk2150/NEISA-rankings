@@ -18,6 +18,7 @@ AM_14=[49.00,45.50,42.00,38.50,35.00,31.50,28.00,24.50,21.00,17.50,14.00,10.50,7
 B_14=[35.00,32.50,30.00,27.50,25.00,22.50,20.00,17.50,15.00,12.50,10.00,7.50,5.00,2.50]
 C_14=[17.50,16.25,15.00,13.75,12.50,11.25,10.00,8.75,7.50,6.25,5.00,3.75,2.50,1.25]
 POINTS_11_14 = {"A": A_14, "AM": AM_14, "B": B_14, "C": C_14}
+
 #scores for 7-10 teams
 B_10 = [30.00,27.00,24.00,21.00,18.00,15.00,12.00,9.00,6.00,3.00]
 C_10 = [15.00,13.50,12.00,10.50,9.00,7.50,6.00,4.50,3.00,1.50]
@@ -56,14 +57,13 @@ def calculate_rank(type, total_teams, score):
         return 0
     #determine rank
     rankvalue= points[score]
-    print(rankvalue)
     return rankvalue
 
 def enter_scores(school_objects, data, type, total_teams, regatta_name):
     data = list(data)
     for scoreind in range(len(data)):
         team = data[scoreind]
-        score = calculate_rank(type, total_teams, scoreind+1)
+        score = calculate_rank(type, total_teams, scoreind)
         if team in school_objects:
             school_objects[team].add_points(score, regatta_name)
 
@@ -148,10 +148,8 @@ def calculate_score_table(total_teams_maximum, total_teams_minimum, regatta_type
         for i in range(1, total_teams+1):
             print(calculate_rank(regatta_type, total_teams, i))
         total_teams = total_teams - 1
-def export_team_regatta_points(school_objects, regatta_link, output_csv_path):
-    import pandas as pd
-    import csv
 
+def export_team_regatta_points_and_placements(school_objects, regatta_link, points_csv_path, placements_csv_path):
     # Read regatta names in order from regatta_link
     df = google_sheets.read_sheet(regatta_link)
     regatta_names = []
@@ -159,20 +157,51 @@ def export_team_regatta_points(school_objects, regatta_link, output_csv_path):
         regatta_name = (regatta.Link.split("/"))[-2]
         regatta_names.append(regatta_name)
 
-    # Build rows
-    rows = []
+    # Build a mapping: regatta_name -> list of (team, points)
+    regatta_results = {regatta: [] for regatta in regatta_names}
+    for school in school_objects.values():
+        for pts, regatta in school.points:
+            regatta_results[regatta].append((school.name, pts))
+        if school.s_regatta_score[0] != 0 and school.s_regatta_score[1]:
+            regatta_results[school.s_regatta_score[1]].append((school.name, school.s_regatta_score[0]))
+
+    # For each regatta, sort teams by points (descending), assign placement
+    regatta_placements = {regatta: {} for regatta in regatta_names}
+    regatta_points = {regatta: {} for regatta in regatta_names}
+    for regatta in regatta_names:
+        teams_points = regatta_results[regatta]
+        # Sort by points descending, then assign placement (1-based)
+        sorted_teams = sorted(teams_points, key=lambda x: x[1], reverse=True)
+        for place, (team, pts) in enumerate(sorted_teams, start=1):
+            regatta_placements[regatta][team] = place
+            regatta_points[regatta][team] = pts
+
+    # Build rows for points
+    points_rows = []
     for school in school_objects.values():
         row = [school.name]
-        regatta_points = {regatta: "" for regatta in regatta_names}
-        for pts, regatta in school.points:
-            regatta_points[regatta] = pts
-        if school.s_regatta_score[0] != 0 and school.s_regatta_score[1]:
-            regatta_points[school.s_regatta_score[1]] = school.s_regatta_score[0]
-        row += [regatta_points[regatta] for regatta in regatta_names]
-        rows.append(row)
+        for regatta in regatta_names:
+            pts = regatta_points[regatta].get(school.name, "")
+            row.append(pts)
+        points_rows.append(row)
 
-    # Write to CSV
-    with open(output_csv_path, "w", newline='') as f:
+    # Build rows for placements
+    placements_rows = []
+    for school in school_objects.values():
+        row = [school.name]
+        for regatta in regatta_names:
+            placement = regatta_placements[regatta].get(school.name, "")
+            row.append(placement)
+        placements_rows.append(row)
+
+    # Write points CSV
+    with open(points_csv_path, "w", newline='') as f:
         writer = csv.writer(f)
         writer.writerow(["Team"] + regatta_names)
-        writer.writerows(rows)
+        writer.writerows(points_rows)
+
+    # Write placements CSV
+    with open(placements_csv_path, "w", newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow(["Team"] + regatta_names)
+        writer.writerows(placements_rows)
