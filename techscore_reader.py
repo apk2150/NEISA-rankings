@@ -11,6 +11,9 @@ def get_regatta_results_and_num_teams(regatta_link, regatta_type):
         return
     teams = list(results_table[0].Team)
     result = list(results_table[0].School)
+    #truncate to 18 teams if more than 18, those placing higher than 18th don't score points
+    teams = teams[:18]
+    result = result[:18]
     finishes = []
     for ind in range(len(teams)):
         team = teams[ind]
