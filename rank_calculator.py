@@ -20,9 +20,10 @@ C_14=[17.50,16.25,15.00,13.75,12.50,11.25,10.00,8.75,7.50,6.25,5.00,3.75,2.50,1.
 POINTS_11_14 = {"A": A_14, "AM": AM_14, "B": B_14, "C": C_14}
 
 #scores for 7-10 teams
+A_10=[84.00,78.00,72.00,66.00,60.00,54.00,48.00,42.00,36.00,30.00] #used for match racings
 B_10 = [30.00,27.00,24.00,21.00,18.00,15.00,12.00,9.00,6.00,3.00]
 C_10 = [15.00,13.50,12.00,10.50,9.00,7.50,6.00,4.50,3.00,1.50]
-POINTS_7_10 = {"B": B_10, "C": C_10}
+POINTS_7_10 = {"A":A_10,"B": B_10, "C": C_10}
 #note: do not get points for regattas with less than 7 teams
 
 
@@ -54,6 +55,7 @@ def calculate_rank(type, total_teams, score):
     elif total_teams >= 7:
         points = POINTS_7_10[type]
     else:
+        print("not enough teams")
         return 0
     #determine rank
     rankvalue= points[score]
