@@ -4,11 +4,12 @@ from termcolor import colored, cprint
 
 def get_regatta_results_and_num_teams(regatta_link, regatta_type):
     results_table = ""
+    regatta_link = regatta_link.strip()
     try:
         results_table = pandas.read_html(regatta_link,attrs={"class": "results coordinate divisional"}, header=0, index_col=0)
-    except:
+    except Exception as error:
         cprint(colored("REGATTA LINK IS BROKEN: " + regatta_link), 'red')
-        return
+        raise RuntimeError(f"Could not read regatta results from {regatta_link}") from error
     teams = list(results_table[0].Team)
     result = list(results_table[0].School)
     #truncate to 18 teams if more than 18, those placing higher than 18th don't score points
