@@ -9,10 +9,14 @@ Follow this model: https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2O1cDbUtwrH
 2. A sheet with each regatta and the type of that regatta for womens and coed. The type is denoted using the same structure we have used in the past. Follow this model exactly: https://docs.google.com/spreadsheets/d/e/2PACX-1vQm-fcet5nzTCvBvHAL_-kz_qrly5SwPJ2nsZYWX_sMgn63Ji8jHffjRDmX1Ha0Qv-wy_pLz5O7aEQP/pub?gid=0&single=true&output=csv
 
 The table will be formated as follows: 
-| Type | Link | LateDrops| Regatta_Name| 
+| Type | LateDrops| Regatta_Name|
 |---|---|---|---|
-| _type of regatta (SA, A, AM, B, C)_ | _link to tech score for that regatta (https://scores.collegesailing.org/season/regatta-name/)_| _number of late drops (integer, blank if no late drops)_ | _name of regatta_| 
-| _example_ C	| https://scores.collegesailing.org/f25/charles-invite/ |	2 |	Charles Invite|
+| _type of regatta (SA, A, AM, B, C)_ | _number of late drops (integer, blank if no late drops)_ | _name of regatta_|
+| _example_ C	| 2 |	Charles Invite|
+
+The script searches the Fall 2026 results page for each `Regatta_Name` and uses the exact
+match when available. If there is no exact match, it uses the closest name from the most
+recent week listed on that page, determined by the regattas' start dates.
 
 
 Note: The google sheets you should use is the link you get when going to File > Publish to Web. Change the Web Page setting to CSV using the dropdown. You should get a link from doing this.

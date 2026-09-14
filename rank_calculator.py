@@ -3,6 +3,7 @@ import numpy as np
 import google_sheets
 import techscore_reader
 import csv
+import regatta_link_finder
 
 #socres for 15-18 teams
 SA_18=[108.00,105.00, 102.00, 99.00, 96.00, 93.00, 90.00, 87.00, 84.00, 81.00, 78.00, 75.00, 72.00, 69.00, 66.00, 63.00, 60.00, 57.00]
@@ -114,11 +115,12 @@ def calculate_ranks(regatta_link, schools_link):
     school_objects = add_school_objects(schools_link)
     for index, regatta in df.iterrows():
         regatta_type = regatta.Type
-        regatta_finishes, total_teams = techscore_reader.get_regatta_results_and_num_teams(regatta.Link, regatta_type)
+        regatta_name = regatta.Regatta_Name
+        result_link = regatta_link_finder.find_regatta_link(regatta_name)
+        regatta_finishes, total_teams = techscore_reader.get_regatta_results_and_num_teams(result_link, regatta_type)
         lateDrops = regatta.LateDrops
         if not pd.isnull(lateDrops):
             total_teams += lateDrops
-        regatta_name = (regatta.Link.split("/"))[-2]
         print("\n\nregatta name", regatta_name)
         print("regatta type", regatta_type)
         # if regatta_type in ("SC_A", "WSC_A", "SC_B"):
@@ -137,7 +139,7 @@ def calculate_ranks(regatta_link, schools_link):
         #TODO: where is the WSC one the line below coming from?
         regattaTypes = ["A", "SA", "AM", "B","BM", "C"]
         if regatta_type not in regattaTypes:
-            print("Regatta type " + regatta_type + " is incorrect for " + regatta.Link)
+            print("Regatta type " + regatta_type + " is incorrect for " + regatta_name)
             print("Possible regatta type options for this regatta are: " + str(regattaTypes))
             continue
 
@@ -159,8 +161,7 @@ def export_team_regatta_points_and_placements(school_objects, regatta_link, poin
     df = google_sheets.read_sheet(regatta_link)
     regatta_names = []
     for _, regatta in df.iterrows():
-        regatta_name = (regatta.Link.split("/"))[-2]
-        regatta_names.append(regatta_name)
+        regatta_names.append(regatta.Regatta_Name)
 
     # Build a mapping: regatta_name -> list of (team, points)
     regatta_results = {regatta: [] for regatta in regatta_names}
